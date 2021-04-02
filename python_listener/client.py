@@ -5,25 +5,27 @@ import binascii
 import codecs
 from solana.rpc.api import Client
 
-AUDIUS_PROGRAM = "Fm4g3bGuezevgqSHopjEDGRGCtVU6CDpFXZE3832EzGs"
+AUDIUS_PROGRAM = "BnmzQSTFwNh9S1abdAAKJo5dELbZSWhqfgH116BqkJPJ"
 SECP_PROGRAM = "KeccakSecp256k11111111111111111111111111111"
 
-SLEEP_TIME = 3
+SLEEP_TIME = 1
 
-# SOLANA_ENDPOINT = "https://devnet.solana.com"
-SOLANA_ENDPOINT = "http://localhost:8899"
+SOLANA_ENDPOINT = "https://devnet.solana.com"
+# SOLANA_ENDPOINT = "http://localhost:8899"
 
 http_client = Client(SOLANA_ENDPOINT)
 
 slot_from = None
 
 while True:
+    print(f"Listening...: {slot_from}")
     if not slot_from:
         slot_from = http_client.get_slot()["result"]
 
     transaction = http_client.get_confirmed_signature_for_address2(
         AUDIUS_PROGRAM, limit=1
     )
+    print(transaction)
 
     if transaction["result"][0]["slot"] > slot_from:
         slot_from = transaction["result"][0]["slot"]

@@ -28,7 +28,7 @@ pub struct ValidSigner {
     /// Ethereum address of signer
     pub eth_address: [u8; SecpSignatureOffsets::ETH_ADDRESS_SIZE],
     /// Nonce, incremented with each recovery operation
-    pub nonce: u32
+    pub nonce: u8
 }
 
 /// Secp256k1 signature offsets data

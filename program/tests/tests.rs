@@ -121,6 +121,7 @@ fn construct_eth_address(
     pubkey: &PublicKey,
 ) -> [u8; state::SecpSignatureOffsets::ETH_ADDRESS_SIZE] {
     let mut addr = [0u8; state::SecpSignatureOffsets::ETH_ADDRESS_SIZE];
+    // TODO: Clarify this next line
     addr.copy_from_slice(&sha3::Keccak256::digest(&pubkey.serialize()[1..])[12..]);
     assert_eq!(addr.len(), state::SecpSignatureOffsets::ETH_ADDRESS_SIZE);
     addr
@@ -275,8 +276,6 @@ async fn validate_signature() {
     let secp_pubkey = PublicKey::from_secret_key(&priv_key);
     let eth_address = construct_eth_address(&secp_pubkey);
 
-    let message = [8u8; 30];
-    println!("message={:?}", message);
 
     let (mut banks_client, payer, recent_blockhash, signer_group, group_owner) = setup().await;
 
@@ -323,8 +322,15 @@ async fn validate_signature() {
     let incremented_nonce = nonce + 1;
     println!("Embedding incremented nonce: {:?}", incremented_nonce);
 
+    let mut message = vec![8u8; 30];
+    println!("message={:?}", message);
+    // Push incremented nonce into message array
+    message.push(incremented_nonce);
+
     let secp256_program_instruction =
     secp256k1_instruction::new_secp256k1_instruction(&priv_key, &message);
+
+    println!("INSTRUCTION: {:?}", secp256_program_instruction);
 
     let start = 1;
     let end = start + state::SecpSignatureOffsets::SIGNATURE_OFFSETS_SERIALIZED_SIZE;

@@ -202,12 +202,20 @@ impl Processor {
         let packed_offsets = offsets.pack();
         instruction_data[1..data_start].copy_from_slice(packed_offsets.as_slice());
 
+        msg!("Recovered data: {:?}", instruction_data);
+        msg!("Recovered data length: {:?}", instruction_data.len());
+
         if instruction_data != secp_instruction.data {
             return Err(AudiusError::SignatureVerificationFailed.into());
         }
 
         // Update with valid nonce
         valid_signer.nonce = valid_signer.nonce + 1;
+
+        // Confirm that the packed nonce at -1 index matches existing nonce +1
+        let embedded_nonce = instruction_data[instruction_data.len() - 1];
+        msg!("Recovered embedded nonce: {:?}", embedded_nonce);
+
         msg!("Incremented signer with nonce {}", valid_signer.nonce);
         valid_signer.serialize(&mut valid_signer_info.data.borrow_mut())?;
 

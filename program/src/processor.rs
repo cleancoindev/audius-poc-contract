@@ -150,7 +150,9 @@ impl Processor {
             return Err(AudiusError::UninitializedSignerGroup.into());
         }
 
-        let valid_signer = ValidSigner::deserialize(&valid_signer_info.data.borrow())?;
+        let mut valid_signer = ValidSigner::deserialize(&valid_signer_info.data.borrow())?;
+        msg!("Recovered valid signer with nonce {}", valid_signer.nonce);
+        msg!("Incrementing nonce");
 
         if !valid_signer.is_initialized() {
             return Err(AudiusError::ValidSignerNotInitialized.into());
@@ -203,6 +205,11 @@ impl Processor {
         if instruction_data != secp_instruction.data {
             return Err(AudiusError::SignatureVerificationFailed.into());
         }
+
+        // Update with valid nonce
+        valid_signer.nonce = valid_signer.nonce + 1;
+        msg!("Incremented signer with nonce {}", valid_signer.nonce);
+        valid_signer.serialize(&mut valid_signer_info.data.borrow_mut())?;
 
         Ok(())
     }

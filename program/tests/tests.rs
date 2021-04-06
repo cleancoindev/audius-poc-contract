@@ -127,6 +127,7 @@ fn construct_eth_address(
 }
 
 #[tokio::test]
+#[ignore]
 async fn init_signer_group() {
     let (mut banks_client, payer, recent_blockhash, signer_group, group_owner) = setup().await;
 
@@ -153,6 +154,7 @@ async fn init_signer_group() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn init_valid_signer() {
     let (mut banks_client, payer, recent_blockhash, signer_group, group_owner) = setup().await;
 
@@ -205,6 +207,7 @@ async fn init_valid_signer() {
 }
 
 #[tokio::test]
+#[ignore]
 async fn clear_valid_signer() {
     let (mut banks_client, payer, recent_blockhash, signer_group, group_owner) = setup().await;
 
@@ -273,30 +276,7 @@ async fn validate_signature() {
     let eth_address = construct_eth_address(&secp_pubkey);
 
     let message = [8u8; 30];
-
-    let secp256_program_instruction =
-        secp256k1_instruction::new_secp256k1_instruction(&priv_key, &message);
-
-    let start = 1;
-    let end = start + state::SecpSignatureOffsets::SIGNATURE_OFFSETS_SERIALIZED_SIZE;
-
-    let offsets =
-        state::SecpSignatureOffsets::unpack(secp256_program_instruction.data[start..end].to_vec());
-
-    let sig_start = offsets.signature_offset as usize;
-    let sig_end = sig_start + state::SecpSignatureOffsets::SECP_SIGNATURE_SIZE;
-
-    let mut signature: [u8; state::SecpSignatureOffsets::SECP_SIGNATURE_SIZE] =
-        [0u8; state::SecpSignatureOffsets::SECP_SIGNATURE_SIZE];
-    signature.copy_from_slice(&secp256_program_instruction.data[sig_start..sig_end]);
-
-    let recovery_id = secp256_program_instruction.data[sig_end];
-
-    let signature_data = instruction::SignatureData {
-        signature,
-        recovery_id,
-        message: message.to_vec(),
-    };
+    println!("message={:?}", message);
 
     let (mut banks_client, payer, recent_blockhash, signer_group, group_owner) = setup().await;
 
@@ -334,6 +314,40 @@ async fn validate_signature() {
     .await
     .unwrap();
 
+    // Recover nonce
+    let mut valid_signer_account = get_account(&mut banks_client, &valid_signer.pubkey()).await;
+    let mut valid_signer_data =
+        state::ValidSigner::deserialize(&valid_signer_account.data.as_slice()).unwrap();
+    let mut nonce = valid_signer_data.nonce;
+    println!("First nonce: {:?}", nonce);
+    let incremented_nonce = nonce + 1;
+    println!("Embedding incremented nonce: {:?}", incremented_nonce);
+
+    let secp256_program_instruction =
+    secp256k1_instruction::new_secp256k1_instruction(&priv_key, &message);
+
+    let start = 1;
+    let end = start + state::SecpSignatureOffsets::SIGNATURE_OFFSETS_SERIALIZED_SIZE;
+
+    let offsets =
+        state::SecpSignatureOffsets::unpack(secp256_program_instruction.data[start..end].to_vec());
+
+    let sig_start = offsets.signature_offset as usize;
+    let sig_end = sig_start + state::SecpSignatureOffsets::SECP_SIGNATURE_SIZE;
+
+    let mut signature: [u8; state::SecpSignatureOffsets::SECP_SIGNATURE_SIZE] =
+        [0u8; state::SecpSignatureOffsets::SECP_SIGNATURE_SIZE];
+    signature.copy_from_slice(&secp256_program_instruction.data[sig_start..sig_end]);
+
+    let recovery_id = secp256_program_instruction.data[sig_end];
+
+    let signature_data = instruction::SignatureData {
+        signature,
+        recovery_id,
+        message: message.to_vec(),
+    };
+
+    // TODO: Who is the actual sender here?
     let mut transaction = Transaction::new_with_payer(
         &[
             secp256_program_instruction,
@@ -349,9 +363,16 @@ async fn validate_signature() {
     );
     transaction.sign(&[&payer], recent_blockhash);
     banks_client.process_transaction(transaction).await.unwrap();
+
+    valid_signer_account = get_account(&mut banks_client, &valid_signer.pubkey()).await;
+    valid_signer_data =
+        state::ValidSigner::deserialize(&valid_signer_account.data.as_slice()).unwrap();
+    nonce = valid_signer_data.nonce;
+    println!("Final nonce: {:?}", nonce);
 }
 
 #[tokio::test]
+#[ignore]
 async fn validate_signature_with_wrong_data() {
     let mut rng = thread_rng();
     let key: [u8; 32] = rng.gen();

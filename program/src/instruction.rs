@@ -183,7 +183,7 @@ pub fn validate_signature(
     let data = args.pack();
 
     let accounts = vec![
-        AccountMeta::new_readonly(*valid_signer_account, false),
+        AccountMeta::new(*valid_signer_account, false),
         AccountMeta::new_readonly(*signer_group, false),
         AccountMeta::new_readonly(sysvar::instructions::id(), false),
     ];
@@ -206,7 +206,7 @@ pub fn validate_signature_with_sysvar(
     let data = args.pack();
 
     let accounts = vec![
-        AccountMeta::new_readonly(*valid_signer_account, false),
+        AccountMeta::new(*valid_signer_account, false),
         AccountMeta::new_readonly(*signer_group, false),
         AccountMeta::new_readonly(*sysvar_instruction, false),
     ];

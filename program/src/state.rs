@@ -27,6 +27,8 @@ pub struct ValidSigner {
     pub signer_group: Pubkey,
     /// Ethereum address of signer
     pub eth_address: [u8; SecpSignatureOffsets::ETH_ADDRESS_SIZE],
+    /// Nonce, incremented with each submission
+    pub nonce: u32
 }
 
 /// Secp256k1 signature offsets data
@@ -201,6 +203,7 @@ mod test {
             version: 1,
             signer_group: Pubkey::new_from_array([1; 32]),
             eth_address: [7; SecpSignatureOffsets::ETH_ADDRESS_SIZE],
+            nonce: 0
         };
 
         let mut buffer: [u8; ValidSigner::LEN] = [0; ValidSigner::LEN];

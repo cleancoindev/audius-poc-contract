@@ -305,13 +305,16 @@ async function createAndVerifyMessage(
     data: serializedInstructionArgs,
   });
 
+  let start = Date.now()
   let signature = await solanaWeb3.sendAndConfirmTransaction(
     devnetConnection,
     transaction,
     [feePayer]
   );
+  let duration = Date.now() - start
 
   console.log("Signature: ", signature);
+  console.log("Duration: ", duration)
 }
 
 exports.createSignerGroup = createSignerGroup;

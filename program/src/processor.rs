@@ -213,10 +213,19 @@ impl Processor {
         valid_signer.nonce = valid_signer.nonce + 1;
 
         // Confirm that the packed nonce at -1 index matches existing nonce +1
-        let embedded_nonce = instruction_data[instruction_data.len() - 1];
-        msg!("Recovered embedded nonce: {:?}", embedded_nonce);
+        let mut embedded_nonce_array = [0u8; 8];
+        embedded_nonce_array.copy_from_slice(&instruction_data[instruction_data.len() - 8..]);
+        // let embedded_nonce_array = instruction_data[instruction_data.len() - 1];
+        msg!("Recovered embedded nonce array: {:?}", embedded_nonce_array);
 
+        let embedded_nonce = u64::from_le_bytes(embedded_nonce_array);
+        msg!("Recovered embedded nonce {:?}", embedded_nonce);
         msg!("Incremented signer with nonce {}", valid_signer.nonce);
+        if (embedded_nonce != valid_signer.nonce) {
+            msg!("INVALID NONCE EMBEDDED!");
+        }
+
+        // TODO: Reject if embedded nonce does not match
         valid_signer.serialize(&mut valid_signer_info.data.borrow_mut())?;
 
         Ok(())

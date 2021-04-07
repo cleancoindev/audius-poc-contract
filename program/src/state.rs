@@ -29,7 +29,7 @@ pub struct ValidSigner {
     pub eth_address: [u8; SecpSignatureOffsets::ETH_ADDRESS_SIZE],
     /// Nonce, incremented with each recovery operation
     /// TODO: Can this be incremented past 255 somehow?
-    pub nonce: u8
+    pub nonce: u64
 }
 
 /// Secp256k1 signature offsets data

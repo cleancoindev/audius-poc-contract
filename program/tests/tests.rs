@@ -319,13 +319,13 @@ async fn validate_signature() {
         state::ValidSigner::deserialize(&valid_signer_account.data.as_slice()).unwrap();
     let mut nonce = valid_signer_data.nonce;
     println!("First nonce: {:?}", nonce);
-    let incremented_nonce = nonce + 1;
+    let incremented_nonce = nonce + 6;
     println!("Embedding incremented nonce: {:?}", incremented_nonce);
 
     let mut message = vec![8u8; 30];
     println!("message={:?}", message);
     // Push incremented nonce into message array
-    message.push(incremented_nonce);
+    message.extend(&incremented_nonce.to_le_bytes());
 
     let secp256_program_instruction =
     secp256k1_instruction::new_secp256k1_instruction(&priv_key, &message);

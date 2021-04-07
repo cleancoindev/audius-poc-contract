@@ -21,6 +21,9 @@ pub enum ProgramTemplateError {
     /// Invalid track data were passed
     #[error("Invalid track data were passed")]
     InvalidTrackData,
+    /// Invalid verifier
+    #[error("Invalid verifier account")]
+    InvalidVerifierAccount
 }
 impl From<ProgramTemplateError> for ProgramError {
     fn from(e: ProgramTemplateError) -> Self {
@@ -42,6 +45,7 @@ impl PrintProgramError for ProgramTemplateError {
             ProgramTemplateError::ExampleError => msg!("Example error message"),
             ProgramTemplateError::InstructionUnpackError => msg!("Instruction unpack error"),
             ProgramTemplateError::InvalidTrackData => msg!("Invalid track data were passed"),
+            ProgramTemplateError::InvalidVerifierAccount => msg!("Invalid verifier account provided"),
         }
     }
 }

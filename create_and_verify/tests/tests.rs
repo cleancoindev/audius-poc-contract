@@ -212,13 +212,28 @@ async fn test_call_example_instruction() {
         recovery_id,
     };
 
+    // Create verifier account
+    // TODO: Dive deep here
+    let verifier = Keypair::new();
+    create_account(
+        &mut banks_client,
+        &payer,
+        &recent_blockhash,
+        &verifier,
+        state::VerifierInfo::LEN,
+    )
+    .await
+    .unwrap();
+
+
     let mut transaction = Transaction::new_with_payer(
         &[
             secp256_program_instruction,
-            instruction::init(
+            instruction::verify_message(
                 &id(),
                 &valid_signer.pubkey(),
                 &signer_group.pubkey(),
+                &verifier.pubkey(),
                 instruction_args,
             )
             .unwrap(),

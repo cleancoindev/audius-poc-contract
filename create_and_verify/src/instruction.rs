@@ -35,10 +35,11 @@ pub enum TemplateInstruction {
 }
 
 /// Create `Example` instruction
-pub fn init(
+pub fn verify_message(
     program_id: &Pubkey,
     valid_signer_account: &Pubkey,
     signer_group: &Pubkey,
+    verifier_account: &Pubkey,
     track_data: InstructionArgs,
 ) -> Result<Instruction, ProgramError> {
     let init_data = TemplateInstruction::ExampleInstruction(track_data);
@@ -46,8 +47,9 @@ pub fn init(
         .try_to_vec()
         .or(Err(ProgramError::InvalidArgument))?;
     let accounts = vec![
-        AccountMeta::new_readonly(*valid_signer_account, false),
-        AccountMeta::new_readonly(*signer_group, false),
+        AccountMeta::new(*valid_signer_account, false),
+        AccountMeta::new(*signer_group, false),
+        AccountMeta::new(*verifier_account, false),
         AccountMeta::new_readonly(audius::id(), false),
         AccountMeta::new_readonly(sysvar::instructions::id(), false),
     ];

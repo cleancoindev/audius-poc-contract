@@ -4,6 +4,7 @@ use crate::{
     error::ProgramTemplateError,
     instruction::{InstructionArgs, TemplateInstruction},
 };
+use crate::state::{VerifierInfo};
 use audius::instruction::SignatureData;
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
@@ -15,7 +16,7 @@ use solana_program::{
 pub struct Processor {}
 impl Processor {
     /// Call Audius program to verify signature
-    pub fn process_example_instruction(
+    pub fn verify_signature_track_data(
         _program_id: &Pubkey,
         accounts: &[AccountInfo],
         instruction_data: InstructionArgs,
@@ -25,6 +26,8 @@ impl Processor {
         let valid_signer_info = next_account_info(account_info_iter)?;
         // signer group account
         let signer_group_info = next_account_info(account_info_iter)?;
+        // verifier account
+        let verifier_account_info = next_account_info(account_info_iter)?;
         // audius account
         let audius_account_info = next_account_info(account_info_iter)?;
         // sysvar instruction
@@ -38,6 +41,24 @@ impl Processor {
                 .try_to_vec()
                 .or(Err(ProgramTemplateError::InvalidTrackData))?,
         };
+
+        msg!("Invoking audius eth registry now...");
+        msg!("verifier_account_info: {:?}", verifier_account_info);
+        /// Confirm that the valid_signer is also initialized in create_and_verify
+        // let tmp = VerifierInfo::try_from_slice(&valid_signer_info.data.borrow())?;
+
+        // TODO: confirm why this initialized already?
+        //         Had thought that it should be empty
+        let mut verifier_info = VerifierInfo::deserialize(
+            &verifier_account_info.data.borrow()
+        )?;
+
+        msg!("verifier_info:{:?}", verifier_info);
+
+        if !(verifier_info.is_initialized()) {
+            msg!("UNINITIALIZED SIGNER INFO FOUND");
+            return Err(ProgramTemplateError::InvalidVerifierAccount.into());
+        }
 
         invoke(
             &audius::instruction::validate_signature_with_sysvar(
@@ -58,6 +79,7 @@ impl Processor {
 
         Ok(())
     }
+    // TODO: Initialize verifier group here
 
     /// Processes an instruction
     pub fn process_instruction(
@@ -70,7 +92,7 @@ impl Processor {
         match instruction {
             TemplateInstruction::ExampleInstruction(signature_data) => {
                 msg!("Instruction: ExampleInstruction");
-                Self::process_example_instruction(program_id, accounts, signature_data)
+                Self::verify_signature_track_data(program_id, accounts, signature_data)
             }
         }
     }
